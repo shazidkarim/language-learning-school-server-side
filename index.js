@@ -30,6 +30,15 @@ async function run() {
         const instructorCollection = client.db("summerCampDb").collection("instructor");
         const myClassCollection = client.db("summerCampDb").collection("myClass");
 
+        // users relared apis
+
+        app.post('/users', async(req,res)=>{
+            const user= req.body;
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
+        })
+
+
 
         // allClass relared apis
         app.get('/class', async(req,res)=>{
@@ -45,7 +54,6 @@ async function run() {
 
 
         // my class related apis
-    
         app.get('/myclass', async(req,res)=>{
             const email = req.query.email;
             console.log(email);
@@ -60,7 +68,6 @@ async function run() {
 
         app.post('/myclass', async(req,res)=>{
             const item = req.body;
-            console.log(item);
             const result = await myClassCollection.insertOne(item);
             res.send(result);
         })
