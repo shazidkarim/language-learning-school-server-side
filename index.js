@@ -56,6 +56,9 @@ async function run() {
             const result = await myClassCollection.insertOne(item);
             res.send(result);
         })
+        app.delete('/myclass/:id', async(req,res)=>{
+            const id = req.params.id;
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
