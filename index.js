@@ -25,19 +25,27 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
+        const usersCollection = client.db("summerCampDb").collection("users");
         const classCollection = client.db("summerCampDb").collection("class");
         const instructorCollection = client.db("summerCampDb").collection("instructor");
         const myClassCollection = client.db("summerCampDb").collection("myClass");
 
+
+        // allClass relared apis
         app.get('/class', async(req,res)=>{
             const result =await classCollection.find().toArray();
             res.send(result);
         })
+
+        // all instructior relard apis
         app.get('/instructor', async(req,res)=>{
             const result =await instructorCollection.find().toArray();
             res.send(result);
         })
-        // my class
+
+
+        // my class related apis
+    
         app.get('/myclass', async(req,res)=>{
             const email = req.query.email;
             console.log(email);
