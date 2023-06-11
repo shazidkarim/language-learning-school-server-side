@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -47,6 +48,7 @@ async function run() {
         const instructorCollection = client.db("summerCampDb").collection("instructor");
         const myClassCollection = client.db("summerCampDb").collection("myClass");
         const addClassCollection = client.db("summerCampDb").collection("addClass");
+        const paymentCollection = client.db("summerCampDb").collection("payments");
 
         // JWT APIS
         app.post('/jwt',(req,res)=>{
@@ -165,6 +167,28 @@ async function run() {
             const result = await myClassCollection.deleteOne(query);
             res.send(result);
         })
+        // payment  intent
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body;
+            const amount = price*100;
+            console.log(price,amount);
+            const paymentIntent = await stripe.paymentIntents.create({
+              amount: amount,
+              currency: "usd",
+              payment_method_types:['card'],
+            });
+          
+            res.send({
+              clientSecret: paymentIntent.client_secret,
+            });
+          });
+          app.post('/payments',verifyJWT, async(req,res)=>{
+            const payment = req.body;
+            const insertResult = await paymentCollection.insertOne(payment);
+            const query = {_id:{$in:payment.class.map(id=> new ObjectId(id))}};
+            const deleteResult = await myClassCollection.deleteMany(query);
+            res.send({insertResult, deleteResult});
+          })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
