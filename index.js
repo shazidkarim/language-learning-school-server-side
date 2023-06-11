@@ -46,6 +46,7 @@ async function run() {
         const classCollection = client.db("summerCampDb").collection("class");
         const instructorCollection = client.db("summerCampDb").collection("instructor");
         const myClassCollection = client.db("summerCampDb").collection("myClass");
+        const addClassCollection = client.db("summerCampDb").collection("addClass");
 
         // JWT APIS
         app.post('/jwt',(req,res)=>{
@@ -53,9 +54,19 @@ async function run() {
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
             res.send({token})
         })
+        // verify admin
+        const verifyAdmin = async(req,res,next)=>{
+            const email = req.decoded.email;
+            const query = {email:email};
+            const user = await usersCollection.findOne(query);
+            if(user?.role !== 'admin'){
+                return res.status(403).send({error:true, message:'forbidden message'});
+            }
+            next();
+        }
 
         // users relared apis
-        app.get('/users',async(req,res)=>{
+        app.get('/users',verifyJWT,verifyAdmin, async(req,res)=>{
             const result = await usersCollection.find().toArray();
             res.send(result);
         })
@@ -110,6 +121,20 @@ async function run() {
             const result =await instructorCollection.find().toArray();
             res.send(result);
         })
+        // add class related apis
+        app.post('/addclass',async(req,res)=>{
+            const newClass = req.body;
+            const result = await addClassCollection.insertOne(newClass);
+            res.send(result);
+        })
+        app.get('/addclass', async (req, res) => {
+            try {
+              const classes = await addClassCollection.find().toArray();
+              res.json(classes);
+            } catch (error) {
+              res.status(500).json({ error: 'Unable to retrieve classes' });
+            }
+          });
 
 
         // my class related apis
